@@ -1,3 +1,5 @@
+<!--字体大小设置-->
+
 <template>
   <el-dropdown trigger="click" @command="handleSetSize">
     <div>
