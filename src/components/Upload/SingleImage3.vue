@@ -65,6 +65,7 @@ export default {
     handleImageSuccess(file) {
       this.emitInput(file.files.file)
     },
+
     beforeUpload() {
       const _self = this
       return new Promise((resolve, reject) => {
