@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import { fetchList } from '@/api/article'
+// import { fetchList } from '@/api/article'
 
 export default {
   name: 'ExportZip',
@@ -54,8 +54,8 @@ export default {
   methods: {
     async fetchData() {
       this.listLoading = true
-      const { data } = await fetchList()
-      this.list = data.items
+      // const { data } = await fetchList()
+      // this.list = data.items
       this.listLoading = false
     },
     handleDownload() {
