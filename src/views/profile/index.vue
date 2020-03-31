@@ -2,7 +2,6 @@
   <div class="app-container">
     <div v-if="user">
       <el-row :gutter="20">
-
         <el-col :span="6" :xs="24">
           <user-card :user="user" />
         </el-col>
@@ -16,11 +15,9 @@
               <el-tab-pane label="Timeline" name="timeline">
                 <timeline />
               </el-tab-pane>
-
             </el-tabs>
           </el-card>
         </el-col>
-
       </el-row>
     </div>
   </div>
@@ -42,11 +39,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      'name',
-      'avatar',
-      'roles'
-    ])
+    ...mapGetters(['name', 'avatar', 'roles'])
   },
   created() {
     this.getUser()
@@ -55,9 +48,14 @@ export default {
     getUser() {
       this.user = {
         name: this.name,
-        role: this.roles.join(' | '),
+        role: this.roles.join('|'),
         email: 'admin@test.com',
-        avatar: this.avatar
+        medicalNumber: 233232,
+        doctorName: '张林',
+        doctorSex: '男',
+        password: '123',
+        phoneNumber: 13144502330,
+        avatar: this.avatar // 头像
       }
     }
   }

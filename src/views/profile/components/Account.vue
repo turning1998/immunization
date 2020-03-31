@@ -3,6 +3,12 @@
     <el-form-item label="用户名">
       <el-input v-model.trim="user.name" />
     </el-form-item>
+    <el-form-item label="密码">
+      <el-input v-model.trim="user.password" />
+    </el-form-item>
+    <el-form-item label="联系方式">
+      <el-input v-model.trim="user.phoneNumber" />
+    </el-form-item>
     <el-form-item label="邮箱">
       <el-input v-model.trim="user.email" />
     </el-form-item>

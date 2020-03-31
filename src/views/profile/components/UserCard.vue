@@ -1,7 +1,7 @@
 <template>
   <el-card style="margin-bottom:20px;">
     <div slot="header" class="clearfix">
-      <span>我的信息</span>
+      <span>关于我</span>
     </div>
 
     <div class="user-profile">
@@ -19,10 +19,29 @@
 
     <div class="user-bio">
       <div class="user-education user-bio-section">
-        <div class="user-bio-section-header"><svg-icon icon-class="education" /><span>职位</span></div>
+        <div class="user-bio-section-header">
+          <svg-icon icon-class="education" />
+          <span>职位</span>
+        </div>
         <div class="user-bio-section-body">
-          <div class="text-muted">
-            护士
+          <div class="text-muted">{{ user.role }}</div>
+        </div>
+      </div>
+
+      <div class="user-skills user-bio-section">
+        <div class="user-bio-section-header">
+          <svg-icon icon-class="skill" />
+          <span>基本信息</span>
+        </div>
+        <div class="user-bio-section-body">
+          <div class="progress-item">
+            <span>医护编号:{{ user.medicalNumber }}</span>
+          </div>
+          <div class="progress-item">
+            <span>姓名:{{ user.doctorName }}</span>
+          </div>
+          <div class="progress-item">
+            <span>性别:{{ user.doctorSex }}</span>
           </div>
         </div>
       </div>
@@ -43,7 +62,10 @@ export default {
           name: '',
           email: '',
           avatar: '',
-          role: ''
+          role: '',
+          medicalNumber: '', // 医护编号
+          doctorName: '', // 名字
+          doctorSex: '' // 性别
         }
       }
     }
@@ -100,12 +122,16 @@ export default {
   .user-bio-section {
     font-size: 14px;
     padding: 15px 0;
-
     .user-bio-section-header {
       border-bottom: 1px solid #dfe6ec;
       padding-bottom: 10px;
       margin-bottom: 10px;
       font-weight: bold;
+    }
+    .user-bio-section-body {
+      .progress-item {
+        padding-top: 10px;
+      }
     }
   }
 }
