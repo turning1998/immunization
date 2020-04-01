@@ -1,319 +1,203 @@
 <template>
-  <div class="login-container">
-    <el-form
-      ref="loginForm"
-      :model="loginForm"
-      :rules="loginRules"
-      class="login-form"
-      autocomplete="on"
-      label-position="left"
-    >
-      <div class="title-container">
-        <h3 class="title">登录</h3>
-      </div>
-
-      <el-form-item prop="username">
-        <span class="svg-container">
-          <svg-icon icon-class="user" />
-        </span>
-        <el-input
-          ref="username"
-          v-model="loginForm.username"
-          name="username"
-          type="text"
-          tabindex="1"
-          autocomplete="on"
-          clearable
-        />
-      </el-form-item>
-
-      <el-tooltip
-        v-model="capsTooltip"
-        content="Caps lock is On"
-        placement="right"
-        manual
-      >
-        <el-form-item prop="password">
-          <span class="svg-container">
-            <svg-icon icon-class="password" />
-          </span>
-          <el-input
-            :key="passwordType"
-            ref="password"
-            v-model="loginForm.password"
-            :type="passwordType"
-            name="password"
-            tabindex="2"
-            clearable
-            autocomplete="on"
-            @keyup.native="checkCapslock"
-            @blur="capsTooltip = false"
-            @keyup.enter.native="handleLogin"
+  <div class="login">
+    <div v-show="showSlide" class="slideShadow">
+      <transition>
+        <div class="slideSty animated bounce">
+          <slide-verify
+            ref="slideDiv"
+            :slider-text="text"
+            :h="175"
+            :w="350"
+            @success="onSuccess"
+            @fail="onFail"
           />
+          <div class="iconBtn">
+            <i class="el-icon-circle-close" @click="showSlide = false" /><i class="el-icon-refresh" @click="refresh" />
+          </div>
+        </div>
+      </transition>
+    </div>
+    <div class="loginBox">
+      <h2 class="loginH2"><strong>接种免疫</strong> 管理系统</h2>
+      <div class="loginCon">
 
-          <span class="show-pwd" @click="showPwd">
-            <svg-icon
-              :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'"
+        <el-form ref="loginForm" :rules="rules" :model="ruleForm">
+          <el-form-item prop="user">
+            <el-input
+              v-model="ruleForm.user"
+              placeholder="请输入账号"
+              prefix-icon="el-icon-user"
             />
-          </span>
-        </el-form-item>
-      </el-tooltip>
-
-      <el-button
-        :loading="loading"
-        type="primary"
-        style="width:100%;margin-bottom:30px;"
-        @click.native.prevent="handleLogin"
-      >登录</el-button>
-    </el-form>
+          </el-form-item>
+          <el-form-item prop="password">
+            <el-input
+              v-model="ruleForm.password"
+              placeholder="请输入密码"
+              prefix-icon="el-icon-lock"
+              show-password
+            />
+          </el-form-item>
+          <el-button
+            type="primary"
+            class="loginBtn"
+            @click="loginYz('loginForm')"
+          >登录</el-button>
+        </el-form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios'
-// import { validUsername } from '@/utils/validate'
+// eslint-disable-next-line quotes
+import SlideVerify from "@/components/SlideVerify"
 export default {
-  name: 'Login',
-  components: {},
+  components: {
+    SlideVerify
+  },
   data() {
-    const validateUsername = (rule, value, callback) => {
-      if (value.length < 3) {
-        callback(new Error('用户名不少于3位！'))
-      } else {
-        callback()
-      }
-    }
-    const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('密码不少于6位！'))
-      } else {
-        callback()
-      }
-    }
     return {
-      loginForm: {
-        username: '',
-        password: ''
+      notifyObj: null,
+      text: '向右滑动',
+      showSlide: false,
+      ruleForm: {
+        user: 'admin',
+        password: '123456'
       },
-      loginRules: {
-        username: [
-          { required: true, trigger: 'blur', validator: validateUsername }
+      rules: {
+        user: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          { min: 3, max: 15, message: '长度在3到5个字符', trigger: 'blur' }
         ],
-        password: [
-          { required: true, trigger: 'blur', validator: validatePassword }
-        ]
-      },
-      passwordType: 'password',
-      capsTooltip: false,
-      loading: false,
-      showDialog: false,
-      redirect: undefined,
-      otherQuery: {}
+        password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+      }
     }
-  },
-  watch: {
-    $route: {
-      handler: function(route) {
-        const query = route.query
-        if (query) {
-          this.redirect = query.redirect
-          this.otherQuery = this.getOtherQuery(query)
-        }
-      },
-      immediate: true
-    }
-  },
-  created() {
-    // window.addEventListener('storage', this.afterQRScan)
   },
   mounted() {
-    if (this.loginForm.username === '') {
-      this.$refs.username.focus()
-    } else if (this.loginForm.password === '') {
-      this.$refs.password.focus()
-    }
-  },
-  destroyed() {
-    // window.removeEventListener('storage', this.afterQRScan)
+
   },
   methods: {
-    checkCapslock(e) {
-      const { key } = e
-      this.capsTooltip = key && key.length === 1 && key >= 'A' && key <= 'Z'
+    onSuccess() {
+      this.showSlide = false
+      this._login()
     },
-    showPwd() {
-      if (this.passwordType === 'password') {
-        this.passwordType = ''
-      } else {
-        this.passwordType = 'password'
-      }
-      this.$nextTick(() => {
-        this.$refs.password.focus()
-      })
+    onFail() {
+      this.$message.error('验证失败')
     },
-    handleLogin() {
-      this.$refs.loginForm.validate(valid => {
+    refresh() {
+      this.$refs.slideDiv.reset()
+    },
+    loginYz(form) {
+      this.$refs[form].validate(valid => {
         if (valid) {
-          this.loading = true
-
-          this.$store
-            .dispatch('user/login', this.loginForm)
-            .then(() => {
-              this.$router.push({
-                path: this.redirect || '/',
-                query: this.otherQuery
-              })
-              this.loading = false
-            })
-            .catch(() => {
-              this.loading = false
-            })
-          axios
-            .get(
-              'http://localhost:3000/'
-              //   ,
-              //   {
-              //    params:{
-              //     title:'眼镜'
-              // }
-              // }
-            )
-            .then(function(res) {
-              console.log(res)
-            }).catch(function(error) {
-              console.log(error)
-            })
+          this.showSlide = true
         } else {
-          console.log('error submit!!')
-          return false
+          return
         }
       })
     },
-    getOtherQuery(query) {
-      return Object.keys(query).reduce((acc, cur) => {
-        if (cur !== 'redirect') {
-          acc[cur] = query[cur]
-        }
-        return acc
-      }, {})
+    _login() {
+      this.$store
+        .dispatch('user/_login', this.ruleForm)
+        .then(res => {
+          if (!res.data.success) {
+            this.refresh()
+          } else {
+            this.$router.push(this.$route.query.redirect)
+            if (this.notifyObj) {
+              this.notifyObj.close()
+            }
+            this.notifyObj = null
+          }
+        })
+        .catch(error => {
+          this.refresh()
+          this.$message.error(error)
+        })
     }
-    // afterQRScan() {
-    //   if (e.key === 'x-admin-oauth-code') {
-    //     const code = getQueryObject(e.newValue)
-    //     const codeMap = {
-    //       wechat: 'code',
-    //       tencent: 'code'
-    //     }
-    //     const type = codeMap[this.auth_type]
-    //     const codeName = code[type]
-    //     if (codeName) {
-    //       this.$store.dispatch('LoginByThirdparty', codeName).then(() => {
-    //         this.$router.push({ path: this.redirect || '/' })
-    //       })
-    //     } else {
-    //       alert('第三方登录失败')
-    //     }
-    //   }
-    // }
+
   }
 }
 </script>
+<style scoped lang="scss">
+.login {
+  height: 100%;
+  width: 100%;
+  background: url(../../assets/pageBg/loginBg.jpg) no-repeat center center;
+  background-size: 100% 100%;
+  overflow: hidden;
+}
+.loginBox {
+  height: 455px;
+  width: 550px;
+  margin: 0 auto;
+  position: relative;
+  top: 50%;
+  margin-top: -287px;
+}
+.loginH2 {
+  font-size: 38px;
+  color: #fff;
+  text-align: center;
+}
+.loginCon {
+  margin-top: 30px;
+  background: #eee;
+  border-radius: 4px;
 
-<style lang="scss">
-/* 修复input 背景不协调 和光标变色 */
-/* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
-
-$bg: #283443;
-$light_gray: #fff;
-$cursor: #fff;
-
-@supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
-  .login-container .el-input input {
-    color: $cursor;
+  .el-form {
+    padding: 25px 25px 30px 25px;
+    background: #eee;
+    border-radius: 0 0 4px 4px;
   }
 }
-
-/* reset element-ui css */
-.login-container {
-  .el-input {
-    display: inline-block;
-    height: 47px;
-    width: 85%;
-
-    input {
-      background: transparent;
-      border: 0px;
-      -webkit-appearance: none;
-      border-radius: 0px;
-      padding: 12px 5px 12px 15px;
-      color: $light_gray;
-      height: 47px;
-      caret-color: $cursor;
-
-      &:-webkit-autofill {
-        box-shadow: 0 0 0px 1000px $bg inset !important;
-        -webkit-text-fill-color: $cursor !important;
-      }
-    }
+.loginBtn {
+  width: 100%;
+  background: #19b9e7;
+}
+.slideShadow {
+  position: fixed;
+  z-index: 999;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+}
+.slideSty {
+  position: absolute;
+  width: 380px;
+  height: 311px;
+  background: #e8e8e8;
+  border: 1px solid #dcdcdc;
+  left: 50%;
+  top: 50%;
+  margin-left: -188px;
+  margin-top: -176px;
+  z-index: 99;
+  border-radius: 5px;
+}
+.iconBtn {
+  padding: 9px 0 0 19px;
+  color: #5f5f5f;
+  border-top: 1px solid #d8d8d8;
+  margin-top: 17px;
+  i {
+    font-size: 22px;
+    cursor: pointer;
   }
-
-  .el-form-item {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-    color: #454545;
+  i:last-child {
+    margin-left: 7px;
   }
 }
 </style>
-
-<style lang="scss" scoped>
-$bg: #008040;
-$dark_gray: #889aa4;
-$light_gray: #eee;
-
-.login-container {
-  min-height: 100%;
-  width: 100%;
-  background-color: $bg;
-  overflow: hidden;
-
-  .login-form {
-    position: relative;
-    width: 520px;
-    max-width: 100%;
-    padding: 160px 35px 0;
-    margin: 0 auto;
-    overflow: hidden;
-  }
-
-  .svg-container {
-    padding: 6px 5px 6px 15px;
-    color: $dark_gray;
-    vertical-align: middle;
-    width: 30px;
-    display: inline-block;
-  }
-
-  .title-container {
-    position: relative;
-
-    .title {
-      font-size: 26px;
-      color: $light_gray;
-      margin: 0px auto 40px auto;
-      text-align: center;
-      font-weight: bold;
-    }
-  }
-
-  .show-pwd {
-    position: absolute;
-    right: 10px;
-    top: 7px;
-    font-size: 16px;
-    color: $dark_gray;
-    cursor: pointer;
-    user-select: none;
-  }
+<style>
+.slideSty .slide-verify {
+  margin: 13px auto 0 auto;
+  width: 350px !important;
+}
+.slideSty .slide-verify-slider {
+  width: 100% !important;
+}
+.slideSty .slide-verify-refresh-icon {
+  display: none;
 }
 </style>
