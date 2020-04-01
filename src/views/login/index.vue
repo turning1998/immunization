@@ -12,7 +12,10 @@
             @fail="onFail"
           />
           <div class="iconBtn">
-            <i class="el-icon-circle-close" @click="showSlide = false" /><i class="el-icon-refresh" @click="refresh" />
+            <i class="el-icon-circle-close" @click="showSlide = false" /><i
+              class="el-icon-refresh"
+              @click="refresh"
+            />
           </div>
         </div>
       </transition>
@@ -20,7 +23,6 @@
     <div class="loginBox">
       <h2 class="loginH2"><strong>接种免疫</strong> 管理系统</h2>
       <div class="loginCon">
-
         <el-form ref="loginForm" :rules="rules" :model="ruleForm">
           <el-form-item prop="user">
             <el-input
@@ -50,7 +52,8 @@
 
 <script>
 // eslint-disable-next-line quotes
-import SlideVerify from "@/components/SlideVerify"
+import axios from "axios"
+import SlideVerify from '@/components/SlideVerify'
 export default {
   components: {
     SlideVerify
@@ -61,8 +64,8 @@ export default {
       text: '向右滑动',
       showSlide: false,
       ruleForm: {
-        user: 'admin',
-        password: '123456'
+        user: '',
+        password: ''
       },
       rules: {
         user: [
@@ -73,9 +76,7 @@ export default {
       }
     }
   },
-  mounted() {
-
-  },
+  mounted() {},
   methods: {
     onSuccess() {
       this.showSlide = false
@@ -97,25 +98,39 @@ export default {
       })
     },
     _login() {
-      this.$store
-        .dispatch('user/_login', this.ruleForm)
-        .then(res => {
-          if (!res.data.success) {
-            this.refresh()
-          } else {
-            this.$router.push(this.$route.query.redirect)
-            if (this.notifyObj) {
-              this.notifyObj.close()
+      axios
+        .post(
+          'http://localhost:3000/', {
+            params: {
+              password: this.ruleForm.password,
+              username: this.ruleForm.user
             }
-            this.notifyObj = null
           }
+        )
+        .then(function(res) {
+          console.log(res.data)
+        }).catch(function(error) {
+          console.log(error)
         })
-        .catch(error => {
-          this.refresh()
-          this.$message.error(error)
-        })
-    }
 
+      // this.$store
+      //   .dispatch('user/_login', this.ruleForm)
+      //   .then(res => {
+      //     if (!res.data.success) {
+      //       this.refresh()
+      //     } else {
+      //       this.$router.push(this.$route.query.redirect)
+      //       if (this.notifyObj) {
+      //         this.notifyObj.close()
+      //       }
+      //       this.notifyObj = null
+      //     }
+      //   })
+      //   .catch(error => {
+      //     this.refresh()
+      //     this.$message.error(error)
+      //   })
+    }
   }
 }
 </script>
