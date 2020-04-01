@@ -108,6 +108,7 @@ export default {
           }
         )
         .then(function(res) {
+          //   this.$message.error(error)
           console.log(res.data)
         }).catch(function(error) {
           console.log(error)
