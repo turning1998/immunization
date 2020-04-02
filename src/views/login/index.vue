@@ -58,8 +58,15 @@ export default {
   components: {
     SlideVerify
   },
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      vm.oldPath = from.path
+      //   console.log(vm.oldPath);
+    })
+  },
   data() {
     return {
+      oldPath: '', // 上一个url的信息
       notifyObj: null,
       text: '向右滑动',
       showSlide: false,
@@ -98,19 +105,21 @@ export default {
       })
     },
     _login() {
+      var _this = this
       axios
-        .post(
-          'http://localhost:3000/', {
-            params: {
-              password: this.ruleForm.password,
-              username: this.ruleForm.user
-            }
+        .post('http://localhost:3000/', {
+          params: {
+            password: this.ruleForm.password,
+            username: this.ruleForm.user
           }
-        )
+        })
         .then(function(res) {
-          //   this.$message.error(error)
+          console.log(_this.$route.query.redirect)
+          _this.$router.push('/')
+          //   _this.$router.push("/#/table/base-table");
           console.log(res.data)
-        }).catch(function(error) {
+        })
+        .catch(function(error) {
           console.log(error)
         })
 
